@@ -1,0 +1,9 @@
+name: dasShop
+main: net.dasunterstrich.dasshop.DasShop
+version: ${version}
+api-version: '1.13'
+author: das_
+description: Yet Another Shop Plugin
+commands:
+  dasShop:
+    description: The main dasShop command
