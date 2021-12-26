@@ -10,4 +10,3 @@ commands:
     description: The main command of dasShop
     aliases:
       - das
-      -
