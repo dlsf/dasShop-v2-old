@@ -18,9 +18,7 @@ dependencies {
     compileOnly("org.spigotmc:spigot-api:1.18-R0.1-SNAPSHOT")
 
     implementation("com.google.inject:guice:5.0.1")
-    implementation("dev.jorel.CommandAPI:commandapi-core:6.4.0") {
-        exclude("com.destroystokyo.paper")
-    }
+    implementation("org.jetbrains:annotations:22.0.0")
 }
 
 tasks {
@@ -28,12 +26,6 @@ tasks {
         fun relocate(origin: String) = relocate(origin, "net.dasunterstrich.dasshop.dependencies${origin.substring(origin.lastIndexOf('.'))}")
 
         relocate("com.google.common")
-        relocate("de.tr7zw.nbtapi")
-        relocate("de.tr7zw.nbtinjector")
-        relocate("dev.jorel.commandapi")
-        relocate("net.kyori.adventure")
-        relocate("net.kyori.examination")
-        relocate("org.checkerframework")
 
         minimize()
     }
