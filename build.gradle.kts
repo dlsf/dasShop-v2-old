@@ -3,6 +3,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.1"
 }
 
+var artifact = "dasshop"
 group = "net.dasunterstrich"
 version = "0.0.1"
 
@@ -23,9 +24,13 @@ dependencies {
 
 tasks {
     shadowJar {
-        fun relocate(origin: String) = relocate(origin, "net.dasunterstrich.dasshop.dependencies${origin.substring(origin.lastIndexOf('.'))}")
+        fun relocate(origin: String) = relocate(origin, "${project.group}.$artifact.dependencies${origin.substring(origin.lastIndexOf('.'))}")
 
-        relocate("com.google.common")
+        relocate("com.google")
+        relocate("org.aopalliance")
+        relocate("org.checkerframework")
+        relocate("org.jetbrains")
+        relocate("javax", "${project.group}.$artifact.dependencies.javax")
 
         minimize()
     }
