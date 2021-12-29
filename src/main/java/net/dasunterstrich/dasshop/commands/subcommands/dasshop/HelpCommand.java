@@ -29,7 +29,7 @@ public class HelpCommand extends Command {
      * The default command.
      */
     public HelpCommand() {
-        super("help", List.of("?"), "Provides help about the dasShop commands", "/das help [page/command]");
+        super("help", List.of("?"), "Provides help about the dasShop commands", "/das help [page/command]", "");
     }
 
     /**
@@ -52,7 +52,7 @@ public class HelpCommand extends Command {
             return true;
         }
 
-        var executingCommand = commandInvoker.findExecutingCommand(arguments[0], Arrays.copyOfRange(arguments, 1, arguments.length));
+        var executingCommand = commandInvoker.findExecutingCommand(commandSender, arguments[0], Arrays.copyOfRange(arguments, 1, arguments.length));
         executingCommand.ifPresentOrElse(
                 command -> sendSpecificCommandHelp(commandSender, command),
                 () -> sendCommandOverview(commandSender, 1)
@@ -63,7 +63,7 @@ public class HelpCommand extends Command {
     /**
      * Sends a page of the overview over all the main commands with their direct sub-commands.
      * @param commandSender the CommandSender which should receive the command overview
-     * @param page the page of the command list
+     * @param requestedPage the page of the command list
      */
     private void sendCommandOverview(CommandSender commandSender, int requestedPage) {
         var registeredCommands = commandRegistry.getAll();
@@ -133,22 +133,22 @@ public class HelpCommand extends Command {
      */
     @Override
     public List<String> getTabCompletions(CommandSender commandSender, String[] arguments) {
-        if (arguments.length != 1) {
-            return List.of();
-        }
-
         var completions = new ArrayList<String>();
 
-        // Add available page numbers to the completion
-        IntStream.range(1, getAvailablePages())
-                .forEach(page -> completions.add(String.valueOf(page)));
+        if (arguments.length == 1) {
+            // Add available page numbers to the completion
+            IntStream.range(1, getAvailablePages())
+                    .forEach(page -> completions.add(String.valueOf(page)));
 
-        // Add main commands and their children to the completion
-        commandRegistry.getAllWithChildren().stream() // TODO: Only add them if necessary
-                .map(Command::getName)
-                .forEach(completions::add);
+            // Add main commands and their children to the completion
+            commandRegistry.getAllWithChildren(command -> command.hasPermission(commandSender)).stream()
+                    .map(Command::getName)
+                    .forEach(completions::add);
 
-        return completions;
+            return completions;
+        }
+
+        return List.of();
     }
 
 }

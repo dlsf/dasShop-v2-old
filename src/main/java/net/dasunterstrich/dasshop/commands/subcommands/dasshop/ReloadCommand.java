@@ -15,7 +15,7 @@ public class ReloadCommand extends Command {
      * The default constructor.
      */
     public ReloadCommand() {
-        super("reload", List.of(), "Reloads all plugin configuration files", "/das reload");
+        super("reload", List.of(), "Reloads all plugin configuration files", "/das reload", "dasshop.reload");
     }
 
     /**

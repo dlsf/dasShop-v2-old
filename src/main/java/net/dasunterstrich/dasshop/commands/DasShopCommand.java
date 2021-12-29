@@ -22,7 +22,7 @@ public class DasShopCommand extends Command {
      */
     @Inject
     public DasShopCommand(Injector injector) {
-        super("dasshop", List.of("das"), "The main dasShop command", "/das");
+        super("dasshop", List.of("das"), "The main dasShop command", "/das", "");
 
         addChild(injector.getInstance(AboutCommand.class));
         addChild(injector.getInstance(HelpCommand.class));

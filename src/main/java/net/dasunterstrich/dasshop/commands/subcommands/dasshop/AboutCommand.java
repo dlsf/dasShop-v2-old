@@ -19,7 +19,7 @@ public class AboutCommand extends Command {
      * The default constructor.
      */
     public AboutCommand() {
-        super("about", List.of("info"), "Outputs information about this plugin", "/das about");
+        super("about", List.of("info"), "Outputs information about this plugin", "/das about", "");
     }
 
     /**

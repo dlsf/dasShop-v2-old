@@ -19,6 +19,7 @@ public abstract class Command {
     private final @NotNull List<String> aliases;
     private final @NotNull String description;
     private final @NotNull String syntax;
+    private final @NotNull String permission;
     private final @NotNull Set<Command> childCommands = new HashSet<>();
     @Inject
     protected @NotNull ArgumentParser argumentParser;
@@ -31,11 +32,12 @@ public abstract class Command {
      * @param description the human-readable description of this command
      * @param syntax the human-readable syntax of this command including a slash and all parent commands
      */
-    public Command(@NotNull String name, @NotNull List<String> aliases, @NotNull String description, @NotNull String syntax) {
+    public Command(@NotNull String name, @NotNull List<String> aliases, @NotNull String description, @NotNull String syntax, @NotNull String permission) {
         this.name = name;
         this.aliases = aliases;
         this.description = description;
         this.syntax = syntax;
+        this.permission = permission;
     }
 
     /**
@@ -116,6 +118,15 @@ public abstract class Command {
      */
     public @NotNull String getSyntax() {
         return syntax;
+    }
+
+    /**
+     * Returns whether the specified CommandSender has the permission to execute this command.
+     * @param commandSender the sender of the command
+     * @return true if the CommandSender has the permission, false if not
+     */
+    public boolean hasPermission(CommandSender commandSender) {
+        return permission.isBlank() || commandSender.hasPermission(permission);
     }
 
     /**

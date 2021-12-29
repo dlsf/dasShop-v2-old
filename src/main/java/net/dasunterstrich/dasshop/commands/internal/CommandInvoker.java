@@ -22,21 +22,25 @@ public class CommandInvoker implements TabExecutor {
     /**
      * Called by Bukkit when a command has been executed on the Bukkit server.<p>
      * <STRONG>May only be called by Bukkit.</STRONG>
-     * @param sender the sender of the command, provided by Bukkit
+     * @param commandSender the commandSender of the command, provided by Bukkit
      * @param command the Bukkit representation of the command, provided by Bukkit
      * @param label the label of the command, provided by Bukkit
      * @param arguments the arguments of the command, provided by Bukkit
      * @return true if this command has been executed successfully, false otherwise
      */
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command command, @NotNull String label, @NotNull String[] arguments) {
-        var executingCommand = findExecutingCommand(command.getName(), arguments)
-                .orElseThrow(() -> new IllegalStateException("Unexpected command: /" + label + " " + String.join(" ", arguments)));;
+    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String label, @NotNull String[] arguments) {
+        var executingCommandOptional = findExecutingCommand(commandSender, command.getName(), arguments);
+        if (executingCommandOptional.isEmpty()) {
+            commandSender.sendMessage("No such command!");
+            return false;
+        }
 
         try {
-            executingCommand.execute(sender, getArguments(executingCommand, arguments));
+            var executingCommand = executingCommandOptional.get();
+            executingCommand.execute(commandSender, getArguments(executingCommand, arguments));
         } catch (CommandException commandException) {
-            sender.sendMessage("Error occurred: " + commandException.getMessage());
+            commandSender.sendMessage("Error occurred: " + commandException.getMessage());
         }
 
         return false;
@@ -45,11 +49,12 @@ public class CommandInvoker implements TabExecutor {
     /**
      * Tries to find the command which should handle this command, which may be a sub-command of a
      * registered command.
+     * @param commandSender the CommandSender which wants to execute the command
      * @param label the label of the command, also known as the base command
      * @param arguments the arguments provided by the command invocation
      * @return an Optional containing the Command which should handle this invocation, empty if there is none
      */
-    public @NotNull Optional<Command> findExecutingCommand(String label, String[] arguments) {
+    public @NotNull Optional<Command> findExecutingCommand(CommandSender commandSender, String label, String[] arguments) {
         var executingCommandOptional = commandRegistry.find(command ->
                 command.getName().equalsIgnoreCase(label) ||
                 command.getAliases().contains(label.toLowerCase()));
@@ -59,11 +64,18 @@ public class CommandInvoker implements TabExecutor {
         }
 
         var executingCommand = executingCommandOptional.get();
+        if (!executingCommand.hasPermission(commandSender)) {
+            return Optional.empty();
+        }
 
         for (String argument : arguments) {
             Optional<Command> executingChild = executingCommand.getChildByName(argument);
             if (executingChild.isEmpty()) {
                 break;
+            }
+
+            if (!executingChild.get().hasPermission(commandSender)) {
+                return Optional.of(executingCommand);
             }
 
             executingCommand = executingChild.get();
@@ -96,15 +108,15 @@ public class CommandInvoker implements TabExecutor {
     /**
      * Returns the tab-completion for this command given the provided arguments and CommandSender.<p>
      * <STRONG>May only be called by Bukkit.</STRONG>
-     * @param sender the sender of the command, provided by Bukkit
+     * @param commandSender the commandSender of the command, provided by Bukkit
      * @param command the Bukkit representation of the command, provided by Bukkit
      * @param label the label of the command, provided by Bukkit
      * @param arguments the arguments of the command, provided by Bukkit
      * @return the list of tab-completions for this invocation
      */
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command command, @NotNull String label, @NotNull String[] arguments) {
-        var executingCommandOptional = findExecutingCommand(command.getName(), arguments);
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull org.bukkit.command.Command command, @NotNull String label, @NotNull String[] arguments) {
+        var executingCommandOptional = findExecutingCommand(commandSender, command.getName(), arguments);
         if (executingCommandOptional.isEmpty()) {
             return List.of();
         }
@@ -112,7 +124,7 @@ public class CommandInvoker implements TabExecutor {
         var executingCommand = executingCommandOptional.get();
 
         // Add command tab completion + child commands to the suggestions
-        List<String> completions = new ArrayList<>(executingCommand.getTabCompletions(sender, getArguments(executingCommand, arguments)));
+        List<String> completions = new ArrayList<>(executingCommand.getTabCompletions(commandSender, getArguments(executingCommand, arguments)));
         executingCommand.getChildren().stream()
                 .map(Command::getName)
                 .forEach(completions::add);
