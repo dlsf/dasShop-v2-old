@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 /**
@@ -70,7 +71,7 @@ public class HelpCommand extends Command {
 
         // Correct invalid pages
         int page = requestedPage;
-        int availablePages = getAvailablePages();
+        int availablePages = getAvailablePages(commandSender);
         if (page > availablePages) {
             page = registeredCommands.size();
         } else if (page < 1) {
@@ -88,8 +89,9 @@ public class HelpCommand extends Command {
      * Returns the number of available pages for the command overview.
      * @return the number of available pages
      */
-    private int getAvailablePages() {
-        return (int) Math.ceil(commandRegistry.getAllWithChildren().size() / (double) commandsPerHelpPage);
+    private int getAvailablePages(CommandSender commandSender) {
+        Set<Command> availableCommands = commandRegistry.getAllWithChildren(command -> command.hasPermission(commandSender));
+        return (int) Math.ceil(availableCommands.size() / (double) commandsPerHelpPage);
     }
 
     /**
@@ -137,7 +139,7 @@ public class HelpCommand extends Command {
 
         if (arguments.length == 1) {
             // Add available page numbers to the completion
-            IntStream.range(1, getAvailablePages())
+            IntStream.range(1, getAvailablePages(commandSender))
                     .forEach(page -> completions.add(String.valueOf(page)));
 
             // Add main commands and their children to the completion
