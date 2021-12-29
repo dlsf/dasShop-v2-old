@@ -1,7 +1,6 @@
 package net.dasunterstrich.dasshop.commands.internal;
 
 import com.google.inject.Inject;
-import net.dasunterstrich.dasshop.utils.Registry;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
@@ -12,11 +11,23 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Invokes internal commands which have been called by Bukkit and tab-completion.
+ */
 public class CommandInvoker implements TabExecutor {
 
     @Inject
-    private Registry<Command> commandRegistry;
+    private CommandRegistry commandRegistry;
 
+    /**
+     * Called by Bukkit when a command has been executed on the Bukkit server.<p>
+     * <STRONG>May only be called by Bukkit.</STRONG>
+     * @param sender the sender of the command, provided by Bukkit
+     * @param command the Bukkit representation of the command, provided by Bukkit
+     * @param label the label of the command, provided by Bukkit
+     * @param arguments the arguments of the command, provided by Bukkit
+     * @return true if this command has been executed successfully, false otherwise
+     */
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command command, @NotNull String label, @NotNull String[] arguments) {
         var executingCommand = findExecutingCommand(command.getName(), arguments)
@@ -31,6 +42,13 @@ public class CommandInvoker implements TabExecutor {
         return false;
     }
 
+    /**
+     * Tries to find the command which should handle this command, which may be a sub-command of a
+     * registered command.
+     * @param label the label of the command, also known as the base command
+     * @param arguments the arguments provided by the command invocation
+     * @return an Optional containing the Command which should handle this invocation, empty if there is none
+     */
     public @NotNull Optional<Command> findExecutingCommand(String label, String[] arguments) {
         var executingCommandOptional = commandRegistry.find(command ->
                 command.getName().equalsIgnoreCase(label) ||
@@ -54,6 +72,14 @@ public class CommandInvoker implements TabExecutor {
         return Optional.of(executingCommand);
     }
 
+    /**
+     * Finds the arguments of a command invocation given the final executing command.<br>
+     * The returned arguments do not contain the argument specifying the invoked sub-command or any
+     * parent commands.
+     * @param executingCommand the command which will be executed
+     * @param arguments all the arguments of this invocation, including parent commands
+     * @return the arguments of the executing command, might be empty
+     */
     private @NotNull String[] getArguments(Command executingCommand, String[] arguments) {
         var index = 0;
 
@@ -67,6 +93,15 @@ public class CommandInvoker implements TabExecutor {
         return Arrays.copyOfRange(arguments, index, arguments.length);
     }
 
+    /**
+     * Returns the tab-completion for this command given the provided arguments and CommandSender.<p>
+     * <STRONG>May only be called by Bukkit.</STRONG>
+     * @param sender the sender of the command, provided by Bukkit
+     * @param command the Bukkit representation of the command, provided by Bukkit
+     * @param label the label of the command, provided by Bukkit
+     * @param arguments the arguments of the command, provided by Bukkit
+     * @return the list of tab-completions for this invocation
+     */
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command command, @NotNull String label, @NotNull String[] arguments) {
         var executingCommandOptional = findExecutingCommand(command.getName(), arguments);
