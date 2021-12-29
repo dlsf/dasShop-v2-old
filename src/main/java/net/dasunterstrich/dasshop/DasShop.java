@@ -37,6 +37,16 @@ public class DasShop extends JavaPlugin {
     }
 
     /**
+     * The shutdown logic for this plugin.
+     */
+    @Override
+    public void onDisable() {
+        unregisterCommands();
+
+        getLogger().info("Plugin has been disabled successfully!");
+    }
+
+    /**
      * Registers all the commands for this plugin.
      */
     private void registerCommands() {
@@ -44,6 +54,13 @@ public class DasShop extends JavaPlugin {
         commandRegistry.register(injector.getInstance(DasShopCommand.class));
 
         getCommand("dasshop").setExecutor(injector.getInstance(CommandInvoker.class));
+    }
+
+    private void unregisterCommands() {
+        var commandRegistry = injector.getInstance(CommandRegistry.class);
+        commandRegistry.getAll().forEach(commandRegistry::unregister);
+
+        getCommand("dasshop").setExecutor(null);
     }
 
 }
