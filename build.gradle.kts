@@ -3,6 +3,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.1"
 }
 
+var artifact = "dasshop"
 group = "net.dasunterstrich"
 version = "0.0.1"
 
@@ -18,22 +19,18 @@ dependencies {
     compileOnly("org.spigotmc:spigot-api:1.18-R0.1-SNAPSHOT")
 
     implementation("com.google.inject:guice:5.0.1")
-    implementation("dev.jorel.CommandAPI:commandapi-core:6.4.0") {
-        exclude("com.destroystokyo.paper")
-    }
+    implementation("org.jetbrains:annotations:22.0.0")
 }
 
 tasks {
     shadowJar {
-        fun relocate(origin: String) = relocate(origin, "net.dasunterstrich.dasshop.dependencies${origin.substring(origin.lastIndexOf('.'))}")
+        fun relocate(origin: String) = relocate(origin, "${project.group}.$artifact.dependencies${origin.substring(origin.lastIndexOf('.'))}")
 
-        relocate("com.google.common")
-        relocate("de.tr7zw.nbtapi")
-        relocate("de.tr7zw.nbtinjector")
-        relocate("dev.jorel.commandapi")
-        relocate("net.kyori.adventure")
-        relocate("net.kyori.examination")
+        relocate("com.google")
+        relocate("org.aopalliance")
         relocate("org.checkerframework")
+        relocate("org.jetbrains")
+        relocate("javax", "${project.group}.$artifact.dependencies.javax")
 
         minimize()
     }
