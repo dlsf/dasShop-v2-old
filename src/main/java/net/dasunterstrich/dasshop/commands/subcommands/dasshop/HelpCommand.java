@@ -79,7 +79,7 @@ public class HelpCommand extends Command {
         }
 
         commandSender.sendMessage(String.format("Available commands (page %d of %d):", page, availablePages));
-        commandRegistry.getAllWithChildren().stream()
+        commandRegistry.getAllWithChildren(command -> command.hasPermission(commandSender)).stream()
                 .skip(commandsPerHelpPage * (page - 1))
                 .limit(commandsPerHelpPage)
                 .forEach(command -> commandSender.sendMessage(String.format("%s: %s", command.getSyntax(), command.getDescription())));
